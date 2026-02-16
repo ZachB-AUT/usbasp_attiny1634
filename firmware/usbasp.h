@@ -8,6 +8,8 @@
  * Last change....: 2009-02-28
  */
 
+ // NOTE: Stores a bunch of identifiers for things.
+
 #ifndef USBASP_H_
 #define USBASP_H_
 

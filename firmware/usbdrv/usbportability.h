@@ -62,6 +62,7 @@ Thanks to Oleg Semyonov for his help with the IAR tools port!
 #define wdt_reset() __watchdog_reset()
 #define _BV(x)      (1 << (x))
 
+//NOTE: Document what these are!
 /* assembler compatibility macros */
 #define nop2    rjmp    $+2 /* jump to next instruction */
 #define XL      r26

@@ -1,12 +1,3 @@
----
-# SECTION WRITTEN BY ZACH
-
-This is a version of Thomas Fischl's USBasp firmware I am modifying to work with
-the ATTINY1634 microcontroller
-
-It is very WIP.
----
-
 This is the README file for USBasp.
 
 USBasp is a USB in-circuit programmer for Atmel AVR controllers. It simply

@@ -7,7 +7,7 @@
 # TARGET=atmega8    HFUSE=0xc9  LFUSE=0xef
 # TARGET=atmega48   HFUSE=0xdd  LFUSE=0xff
 # TARGET=at90s2313
-TARGET=attiny1634
+TARGET=atmega8
 HFUSE=0xc9
 LFUSE=0xef
 
@@ -44,6 +44,7 @@ OBJECTS = usbdrv/usbdrv.o usbdrv/usbdrvasm.o usbdrv/oddebug.o isp.o clock.o tpi.
 .c.o:
 	$(COMPILE) -c $< -o $@
 #-Wa,-ahlms=$<.lst
+# NOTE: What does this do?
 
 .S.o:
 	$(COMPILE) -x assembler-with-cpp -c $< -o $@
@@ -135,4 +136,3 @@ UISP = uisp -dprog=$S -dserial=$(SERIAL) -dpart=auto
 uisp:	all
 	$(UISP) --erase
 	$(UISP) --upload --verify if=main.hex
-

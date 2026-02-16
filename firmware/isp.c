@@ -13,7 +13,6 @@
 #include "isp.h"
 #include "clock.h"
 #include "usbasp.h"
-
 #define spiHWdisable() SPCR = 0
 
 uchar sck_sw_delay;
@@ -22,13 +21,15 @@ uchar sck_spsr;
 uchar isp_hiaddr;
 
 void spiHWenable() {
+    // NOTE: SPI hardware enable (use hardware spi)
 	SPCR = sck_spcr;
 	SPSR = sck_spsr;
 }
 
 void ispSetSCKOption(uchar option) {
 
-	if (option == USBASP_ISP_SCK_AUTO)
+    // NOTE: Defaults to 375 KHz
+    if (option == USBASP_ISP_SCK_AUTO)
 		option = USBASP_ISP_SCK_375;
 
 	if (option >= USBASP_ISP_SCK_93_75) {
@@ -124,7 +125,7 @@ void ispConnect() {
 	if (ispTransmit == ispTransmit_hw) {
 		spiHWenable();
 	}
-	
+
 	/* Initial extended address value */
 	isp_hiaddr = 0;
 }
@@ -141,6 +142,8 @@ void ispDisconnect() {
 }
 
 uchar ispTransmit_sw(uchar send_byte) {
+    // NOTE: Software ISP transmit
+    // Does not use the SPI system!
 
 	uchar rec_byte = 0;
 	uchar i;
@@ -172,6 +175,7 @@ uchar ispTransmit_sw(uchar send_byte) {
 }
 
 uchar ispTransmit_hw(uchar send_byte) {
+    // ISP Hardware Transmit
 	SPDR = send_byte;
 
 	while (!(SPSR & (1 << SPIF)))
@@ -180,22 +184,29 @@ uchar ispTransmit_hw(uchar send_byte) {
 }
 
 uchar ispEnterProgrammingMode() {
+    // NOTE: I think this instructs the connected device to enter programming mode?
+    //    : Yes, it does.
+    //
 	uchar check;
 	uchar count = 32;
 
 	while (count--) {
-		ispTransmit(0xAC);
-		ispTransmit(0x53);
+		ispTransmit(0xAC); // NOTE: I need to go and document these magic numbers.
+		ispTransmit(0x53); //     : I think these are ISP commands? Those should be in the data-sheet
+		                   //     : These are documented in AVR910. The sequence 0xAC 0x53 instructs the target
+						   //     : to enter programmign mode.
 		check = ispTransmit(0);
-		ispTransmit(0);
+		ispTransmit(0); // What we send here doesnt matter, we just need to send *something*
 
-		if (check == 0x53) {
+
+		if (check == 0x53) { // Returned by target if entering programming mode was successful.
 			return 0;
 		}
 
 		spiHWdisable();
 
 		/* pulse RST */
+		// Why do we pulse RST?
 		ispDelay();
 		ISP_OUT |= (1 << ISP_RST); /* RST high */
 		ispDelay();
@@ -284,7 +295,7 @@ uchar ispWriteFlash(unsigned long address, uchar data, uchar pollmode) {
 uchar ispFlushPage(unsigned long address, uchar pollvalue) {
 
 	ispUpdateExtended(address);
-	
+
 	ispTransmit(0x4C);
 	ispTransmit(address >> 9);
 	ispTransmit(address >> 1);

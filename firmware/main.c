@@ -38,6 +38,9 @@ static uchar prog_blockflags;
 static uchar prog_pagecounter;
 
 uchar usbFunctionSetup(uchar data[8]) {
+    // Still trying to figure out what this does.
+    // I *think*, that it is for setting up the connection between the USB input
+    // and the ISP output.
 
 	uchar len = 0;
 
@@ -144,7 +147,7 @@ uchar usbFunctionSetup(uchar data[8]) {
 
 		clockWait(16);
 		tpi_init();
-	
+
 	} else if (data[1] == USBASP_FUNC_TPI_DISCONNECT) {
 
 		tpi_send_byte(TPI_OP_SSTCS(TPISR));
@@ -164,26 +167,26 @@ uchar usbFunctionSetup(uchar data[8]) {
 		ISP_OUT &= ~((1 << ISP_RST) | (1 << ISP_SCK) | (1 << ISP_MOSI));
 
 		ledRedOff();
-	
+
 	} else if (data[1] == USBASP_FUNC_TPI_RAWREAD) {
 		replyBuffer[0] = tpi_recv_byte();
 		len = 1;
-	
+
 	} else if (data[1] == USBASP_FUNC_TPI_RAWWRITE) {
 		tpi_send_byte(data[2]);
-	
+
 	} else if (data[1] == USBASP_FUNC_TPI_READBLOCK) {
 		prog_address = (data[3] << 8) | data[2];
 		prog_nbytes = (data[7] << 8) | data[6];
 		prog_state = PROG_STATE_TPI_READ;
 		len = 0xff; /* multiple in */
-	
+
 	} else if (data[1] == USBASP_FUNC_TPI_WRITEBLOCK) {
 		prog_address = (data[3] << 8) | data[2];
 		prog_nbytes = (data[7] << 8) | data[6];
 		prog_state = PROG_STATE_TPI_WRITE;
 		len = 0xff; /* multiple out */
-	
+
 	} else if (data[1] == USBASP_FUNC_GETCAPABILITIES) {
 		replyBuffer[0] = USBASP_CAP_0_TPI;
 		replyBuffer[1] = 0;
