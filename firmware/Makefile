@@ -7,7 +7,7 @@
 # TARGET=atmega8    HFUSE=0xc9  LFUSE=0xef
 # TARGET=atmega48   HFUSE=0xdd  LFUSE=0xff
 # TARGET=at90s2313
-TARGET=atmega8
+TARGET=attiny1634
 HFUSE=0xc9
 LFUSE=0xef
 
@@ -87,6 +87,9 @@ fuses:
 
 avrdude:
 	avrdude -c ${ISP} -p ${TARGET} -P ${PORT} -v
+
+size: main.bin
+	avr-size -C --mcu=${TARGET} main.bin
 
 # Fuse atmega8 high byte HFUSE:
 # 0xc9 = 1 1 0 0   1 0 0 1 <-- BOOTRST (boot reset vector at 0x0000)

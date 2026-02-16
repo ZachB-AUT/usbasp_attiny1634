@@ -19,10 +19,10 @@
 #define	ISP_OUT   PORTB
 #define ISP_IN    PINB
 #define ISP_DDR   DDRB
-#define ISP_RST   PB2
-#define ISP_MOSI  PB3
-#define ISP_MISO  PB4
-#define ISP_SCK   PB5
+#define ISP_SCK   PB0
+#define ISP_MOSI  PB1
+#define ISP_MISO  PB2
+#define ISP_RST   PB3
 
 /* Prepare connection to target device */
 void ispConnect();

@@ -9,11 +9,20 @@
  * Last change....: 2010-01-19
  */
 
+ /*
+  * NOTES:
+  * The attiny1634 does not have a hardware SPI peripheral like the atmega8
+  * does. We can either use the USI (Universal Serial Interface), or the
+  * software transmit modes Thomas has already written. This can be accomplished
+  * by either automatically using slow transmit always and commenting out the
+  * hardware transmit options, but that would probably be *very* slow.
+  */
+
 #include <avr/io.h>
 #include "isp.h"
 #include "clock.h"
 #include "usbasp.h"
-#define spiHWdisable() SPCR = 0
+#define spiHWdisable() // SPCR = 0
 
 uchar sck_sw_delay;
 uchar sck_spcr;
@@ -21,49 +30,51 @@ uchar sck_spsr;
 uchar isp_hiaddr;
 
 void spiHWenable() {
+
     // NOTE: SPI hardware enable (use hardware spi)
-	SPCR = sck_spcr;
-	SPSR = sck_spsr;
+    // NOTE: Commented out because we are not using hardware system
+    // SPCR = sck_spcr;
+	// SPSR = sck_spsr;
 }
 
 void ispSetSCKOption(uchar option) {
 
     // NOTE: Defaults to 375 KHz
     if (option == USBASP_ISP_SCK_AUTO)
-		option = USBASP_ISP_SCK_375;
+		option = USBASP_ISP_SCK_32; // Changed from 375
+ // UNCOMMENT FOR HARDWARE
+	// if (option >= USBASP_ISP_SCK_93_75) {
+	// 	ispTransmit = ispTransmit_hw;
+	// 	sck_spsr = 0;
+	// 	sck_sw_delay = 1;	/* force RST#/SCK pulse for 320us */
 
-	if (option >= USBASP_ISP_SCK_93_75) {
-		ispTransmit = ispTransmit_hw;
-		sck_spsr = 0;
-		sck_sw_delay = 1;	/* force RST#/SCK pulse for 320us */
+	// 	switch (option) {
 
-		switch (option) {
+	// 	case USBASP_ISP_SCK_1500:
+	// 		/* enable SPI, master, 1.5MHz, XTAL/8 */
+	// 		sck_spcr = (1 << SPE) | (1 << MSTR) | (1 << SPR0);
+	// 		sck_spsr = (1 << SPI2X);
+	// 	case USBASP_ISP_SCK_750:
+	// 		/* enable SPI, master, 750kHz, XTAL/16 */
+	// 		sck_spcr = (1 << SPE) | (1 << MSTR) | (1 << SPR0);
+	// 		break;
+	// 	case USBASP_ISP_SCK_375:
+	// 	default:
+	// 		/* enable SPI, master, 375kHz, XTAL/32 (default) */
+	// 		sck_spcr = (1 << SPE) | (1 << MSTR) | (1 << SPR1);
+	// 		sck_spsr = (1 << SPI2X);
+	// 		break;
+	// 	case USBASP_ISP_SCK_187_5:
+	// 		/* enable SPI, master, 187.5kHz XTAL/64 */
+	// 		sck_spcr = (1 << SPE) | (1 << MSTR) | (1 << SPR1);
+	// 		break;
+	// 	case USBASP_ISP_SCK_93_75:
+	// 		/* enable SPI, master, 93.75kHz XTAL/128 */
+	// 		sck_spcr = (1 << SPE) | (1 << MSTR) | (1 << SPR1) | (1 << SPR0);
+	// 		break;
+	// 	}
 
-		case USBASP_ISP_SCK_1500:
-			/* enable SPI, master, 1.5MHz, XTAL/8 */
-			sck_spcr = (1 << SPE) | (1 << MSTR) | (1 << SPR0);
-			sck_spsr = (1 << SPI2X);
-		case USBASP_ISP_SCK_750:
-			/* enable SPI, master, 750kHz, XTAL/16 */
-			sck_spcr = (1 << SPE) | (1 << MSTR) | (1 << SPR0);
-			break;
-		case USBASP_ISP_SCK_375:
-		default:
-			/* enable SPI, master, 375kHz, XTAL/32 (default) */
-			sck_spcr = (1 << SPE) | (1 << MSTR) | (1 << SPR1);
-			sck_spsr = (1 << SPI2X);
-			break;
-		case USBASP_ISP_SCK_187_5:
-			/* enable SPI, master, 187.5kHz XTAL/64 */
-			sck_spcr = (1 << SPE) | (1 << MSTR) | (1 << SPR1);
-			break;
-		case USBASP_ISP_SCK_93_75:
-			/* enable SPI, master, 93.75kHz XTAL/128 */
-			sck_spcr = (1 << SPE) | (1 << MSTR) | (1 << SPR1) | (1 << SPR0);
-			break;
-		}
-
-	} else {
+	// } else { // UNCOMMENT FOR HARDWARE
 		ispTransmit = ispTransmit_sw;
 		switch (option) {
 
@@ -96,7 +107,7 @@ void ispSetSCKOption(uchar option) {
 
 			break;
 		}
-	}
+	// } // UNCOMMENT FOR HARDWARE
 }
 
 void ispDelay() {
@@ -122,9 +133,9 @@ void ispConnect() {
 	ispDelay();
 	ISP_OUT &= ~(1 << ISP_RST); /* RST low */
 
-	if (ispTransmit == ispTransmit_hw) {
-		spiHWenable();
-	}
+	// if (ispTransmit == ispTransmit_hw) {
+	// 	spiHWenable();
+	// }
 
 	/* Initial extended address value */
 	isp_hiaddr = 0;
@@ -138,7 +149,7 @@ void ispDisconnect() {
 	ISP_OUT &= ~((1 << ISP_RST) | (1 << ISP_SCK) | (1 << ISP_MOSI));
 
 	/* disable hardware SPI */
-	spiHWdisable();
+	// spiHWdisable();
 }
 
 uchar ispTransmit_sw(uchar send_byte) {
@@ -174,14 +185,14 @@ uchar ispTransmit_sw(uchar send_byte) {
 	return rec_byte;
 }
 
-uchar ispTransmit_hw(uchar send_byte) {
-    // ISP Hardware Transmit
-	SPDR = send_byte;
+// uchar ispTransmit_hw(uchar send_byte) {
+//     // ISP Hardware Transmit
+// 	SPDR = send_byte;
 
-	while (!(SPSR & (1 << SPIF)))
-		;
-	return SPDR;
-}
+// 	while (!(SPSR & (1 << SPIF)))
+// 		;
+// 	return SPDR;
+// }
 
 uchar ispEnterProgrammingMode() {
     // NOTE: I think this instructs the connected device to enter programming mode?
@@ -203,7 +214,7 @@ uchar ispEnterProgrammingMode() {
 			return 0;
 		}
 
-		spiHWdisable();
+		// spiHWdisable();
 
 		/* pulse RST */
 		// Why do we pulse RST?
@@ -213,9 +224,9 @@ uchar ispEnterProgrammingMode() {
 		ISP_OUT &= ~(1 << ISP_RST); /* RST low */
 		ispDelay();
 
-		if (ispTransmit == ispTransmit_hw) {
-			spiHWenable();
-		}
+		// if (ispTransmit == ispTransmit_hw) {
+		// 	spiHWenable();
+		// }
 
 	}
 

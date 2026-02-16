@@ -307,13 +307,19 @@ int main(void) {
 	uchar i, j;
 
 	/* no pullups on USB and ISP pins */
-	PORTD = 0;
-	PORTB = 0;
+	// PORTA = 0; // NOTE: Changed from PORTD
+	// PORTB = 0;
+	PORTA &= 0b11110000;
+	PORTB &= 0b11110000;
+
+	// NOTE: PD2 used to be the interrupt pin, now its PA0
 	/* all outputs except PD2 = INT0 */
-	DDRD = ~(1 << 2);
+	// DDRD = ~(1 << 2);
+	DDRA = ~(1<<0);
 
 	/* output SE0 for USB reset */
-	DDRB = ~0;
+	// NOTE: USB used to be on PORTB, now its on PORTA
+	DDRA = ~0;
 	j = 0;
 	/* USB Reset by device only required on Watchdog Reset */
 	while (--j) {
@@ -323,11 +329,13 @@ int main(void) {
 			;
 	}
 	/* all USB and ISP pins inputs */
-	DDRB = 0;
+	// Used to DDRB,
+	DDRA = 0;
 
 	/* all inputs except PC0, PC1 */
-	DDRC = 0x03;
-	PORTC = 0xfe;
+	// NOTE: For LEDs, not yet implemented.
+	// DDRC = 0b00000011;
+	// PORTC = 0b11111110;
 
 	/* init timer */
 	clockInit();
